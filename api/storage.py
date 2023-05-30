@@ -65,11 +65,13 @@ class Storage:
 
         content = await file.read()
 
+        print(file)
+
         return schemas.File(
             name=file.filename,
             size=len(content),
             checksum=hashlib.md5(content).hexdigest(),
-            content=base64.b64decode(content),
+            content=content,
             content_type=file.content_type,
         )
 

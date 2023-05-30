@@ -4,11 +4,32 @@ from storage import storage
 
 router = APIRouter()
 
+POST_FILE = {
+    201: {
+        "description": "Successful Response",
+        "content": {
+            "application/json": {
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "name": {"type": "string"},
+                        "size": {"type": "integer"},
+                        "checksum": {"type": "string"},
+                        "content": {"type": "bytes"},
+                        "content_type": {"type": "string"},
+                    },
+                }
+            }
+        },
+    }
+}
+
 
 @router.post(
     "/",
     status_code=status.HTTP_201_CREATED,
     response_model=schemas.File,
+    responses=POST_FILE,
     name="file:create_file",
 )
 async def create_file(file: UploadFile) -> schemas.File:
