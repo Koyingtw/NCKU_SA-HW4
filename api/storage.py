@@ -67,7 +67,7 @@ class Storage:
 
         return schemas.File(
             name=file.filename,
-            size=len(file.file.read()),
+            size=len(content),
             checksum=hashlib.md5(content).hexdigest(),
             content=content,
             content_type=file.content_type,
