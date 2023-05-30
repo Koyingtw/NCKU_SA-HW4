@@ -64,16 +64,11 @@ class Storage:
         # TODO: create file with data block and parity block and return it's schema
 
         content = await file.read()
-        content_str = content.decode("utf-8")
-
-        print(content_str)
-
-        print(file)
 
         return schemas.File(
             name=file.filename,
             size=len(content),
-            checksum=hashlib.md5(content_str.encode()).hexdigest(),
+            checksum=hashlib.md5(content).hexdigest(),
             content=content,
             content_type=file.content_type,
         )
