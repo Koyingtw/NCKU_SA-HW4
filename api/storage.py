@@ -1,5 +1,6 @@
 import base64
 import hashlib
+import os
 import sys
 from pathlib import Path
 from typing import List
@@ -38,6 +39,25 @@ class Storage:
         and the file is considered to be damaged
         so we need to delete the file
         """
+
+        # 1. all data blocks must exist
+        num_disks = settings.NUM_DISKS
+        data_blocks = [f"/var/raid/block-{i}" for i in range(num_disks - 1)]
+        if not all(os.path.exists(block) for block in data_blocks):
+            return False
+
+        # 2. size of all data blocks must be equal
+        first_block_size = os.path.getsize(data_blocks[0])
+        if not all(os.path.getsize(block) == first_block_size for block in data_blocks):
+            return False
+
+        # 3. parity block must exist
+        parity_block = f"/var/raid/block-{num_disks - 1}"
+        if not os.path.exists(parity_block):
+            return False
+
+        # parity verify must success
+
         return True
 
     async def create_file(self, file: UploadFile) -> schemas.File:
