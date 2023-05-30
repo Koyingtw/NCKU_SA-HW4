@@ -35,4 +35,4 @@ GET_HEALTH = {
     name="health:get_health",
 )
 def get_health() -> Any:
-    return schemas.Msg(detail="Service healthy test2")
+    return schemas.Msg(detail="Service healthy")

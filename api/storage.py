@@ -64,9 +64,10 @@ class Storage:
         # TODO: create file with data block and parity block and return it's schema
 
         content = "お前はもう死んでいる!!!"
+        print(file)
         return schemas.File(
-            name="m3ow.txt",
-            size=123,
+            name="test",
+            size="test",
             checksum=hashlib.md5(content.encode()).hexdigest(),
             content=base64.b64decode(content.encode()),
             content_type="text/plain",
