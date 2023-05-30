@@ -69,7 +69,7 @@ class Storage:
             name=file.filename,
             size=len(content),
             checksum=hashlib.md5(content).hexdigest(),
-            content=content,
+            content=base64.b64encode(content),
             content_type=file.content_type,
         )
 
