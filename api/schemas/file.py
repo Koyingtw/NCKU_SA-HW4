@@ -6,5 +6,5 @@ class File(BaseModel):
     name: str
     size: int
     checksum: str
-    content: str
+    content: bytes
     content_type: str
