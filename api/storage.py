@@ -63,14 +63,14 @@ class Storage:
     async def create_file(self, file: UploadFile) -> schemas.File:
         # TODO: create file with data block and parity block and return it's schema
 
-        content = "お前はもう死んでいる!!!"
-        print(file)
+        content = await file.read()
+
         return schemas.File(
-            name="test",
-            size="test",
-            checksum=hashlib.md5(content.encode()).hexdigest(),
-            content=base64.b64decode(content.encode()),
-            content_type="text/plain",
+            name=file.filename,
+            size=len(file.file.read()),
+            checksum=hashlib.md5(content).hexdigest(),
+            content=content,
+            content_type=file.content_type,
         )
 
     async def retrieve_file(self, filename: str) -> bytes:
