@@ -82,15 +82,18 @@ class Storage:
             with open(part_file, "wb") as f:
                 f.write(part)
 
-        xor_result = bytes([0]) * chunk_size
-        for part in parts:
-            xor_result = bytes(a ^ b for a, b in zip(xor_result, part))
+        parity_block = []
+        for i in range(chunk_size):
+            xor_result = 0
+            for part in parts:
+                xor_result ^= part[i]
+            parity_block.append(xor_result)
 
         parity_file = (
             f"/var/raid/block-{n - 1}/{file.filename}"  # 奇偶校驗檔案的檔名，例如 parity.bin
         )
         with open(parity_file, "wb") as f:
-            f.write(xor_result)
+            f.write(bytes(parity_block))
 
         return schemas.File(
             name=file.filename,
