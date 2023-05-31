@@ -1,6 +1,5 @@
 import base64
 import hashlib
-import math
 import os
 import sys
 from pathlib import Path
@@ -72,15 +71,20 @@ class Storage:
 
         # create file with data block and parity block and return it's schema
         n = settings.NUM_DISKS
-        chunk_size = math.ceil(len(content) / (n - 1))
+        chunk_size = len(content) // (n - 1)
         print(chunk_size)
 
         parts = []
 
-        for i in range(n - 1):
-            part = content[i * chunk_size : (i + 1) * chunk_size] + b"\x00" * (
-                chunk_size - len(content[i * chunk_size : (i + 1) * chunk_size])
-            )
+        for i in range(len(content) % (n - 1)):
+            part = content[i * (chunk_size + 1) : (i + 1) * (chunk_size + 1)] + b"\x00"
+            parts.append(part)
+            part_file = f"/var/raid/block-{i}/{file.filename}"  # 部分檔案的檔名，例如 part1.bin、part2.bin、part3.bin 等
+            with open(part_file, "wb") as f:
+                f.write(part)
+
+        for i in range((n - 1) - (len(content) % (n - 1))):
+            part = content[i * chunk_size : (i + 1) * chunk_size]
             parts.append(part)
             part_file = f"/var/raid/block-{i}/{file.filename}"  # 部分檔案的檔名，例如 part1.bin、part2.bin、part3.bin 等
             with open(part_file, "wb") as f:
