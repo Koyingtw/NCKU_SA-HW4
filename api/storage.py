@@ -82,7 +82,7 @@ class Storage:
             with open(part_file, "wb") as f:
                 f.write(part)
 
-        parity_block = []
+        parity_block = bytearray()
         for i in range(chunk_size):
             xor_result = 0
             for part in parts:
