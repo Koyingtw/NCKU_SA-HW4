@@ -12,6 +12,10 @@ from fastapi import UploadFile
 from loguru import logger
 
 
+def byte_xor(ba1, ba2):
+    return bytes([_a ^ _b for _a, _b in zip(ba1, ba2)])
+
+
 class Storage:
     def __init__(self, is_test: bool):
         self.block_path: List[Path] = [
@@ -83,11 +87,15 @@ class Storage:
                 f.write(part)
 
         parity_block = bytearray()
-        for i in range(chunk_size):
-            xor_result = 0
-            for part in parts:
-                xor_result ^= part[i]
-            parity_block.append(xor_result)
+
+        for part in parts:
+            parity_block = bytes(_a ^ _b for _a, _b in zip(parity_block, part))
+
+        # for i in range(chunk_size):
+        #     xor_result = b"\x00"
+        #     for part in parts:
+        #         xor_result = byte_xor(xor_result, part[i])
+        #     parity_block.append(xor_result)
 
         parity_file = (
             f"/var/raid/block-{n - 1}/{file.filename}"  # 奇偶校驗檔案的檔名，例如 parity.bin
