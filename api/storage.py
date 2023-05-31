@@ -1,5 +1,6 @@
 import base64
 import hashlib
+import math
 import os
 import sys
 from pathlib import Path
@@ -14,7 +15,7 @@ from loguru import logger
 class Storage:
     def __init__(self, is_test: bool):
         self.block_path: List[Path] = [
-            Path("/tmp") / f"{settings.FOLDER_PREFIX}-{i}-test"
+            Path("/var/raid") / f"{settings.FOLDER_PREFIX}-{i}-test"
             if is_test
             else Path(settings.UPLOAD_PATH) / f"{settings.FOLDER_PREFIX}-{i}"
             for i in range(settings.NUM_DISKS)
@@ -61,9 +62,35 @@ class Storage:
         return True
 
     async def create_file(self, file: UploadFile) -> schemas.File:
+        content = await file.read()
+
         # TODO: create file with data block and parity block and return it's schema
 
-        content = await file.read()
+        # create file with data block and parity block and return it's schema
+        n = settings.NUM_DISKS
+        chunk_size = math.ceil(len(content) / (n - 1))
+        print(chunk_size)
+
+        parts = []
+
+        for i in range(n - 1):
+            part = content[i * chunk_size : (i + 1) * chunk_size] + b"\x00" * (
+                chunk_size - len(content[i * chunk_size : (i + 1) * chunk_size])
+            )
+            parts.append(part)
+            part_file = f"/var/raid/block-{i}/{file.filename}"  # 部分檔案的檔名，例如 part1.bin、part2.bin、part3.bin 等
+            with open(part_file, "wb") as f:
+                f.write(part)
+
+        xor_result = bytes([0]) * chunk_size
+        for part in parts:
+            xor_result = bytes(a ^ b for a, b in zip(xor_result, part))
+
+        parity_file = (
+            f"/var/raid/block-{n - 1}/{file.filename}"  # 奇偶校驗檔案的檔名，例如 parity.bin
+        )
+        with open(parity_file, "wb") as f:
+            f.write(xor_result)
 
         return schemas.File(
             name=file.filename,
