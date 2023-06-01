@@ -108,7 +108,7 @@ class Storage:
             f"/var/raid/block-{n - 1}/{file.filename}"  # 奇偶校驗檔案的檔名，例如 parity.bin
         )
         with open(parity_file, "wb") as f:
-            f.write(bytes(parity_block))
+            f.write(parity_block)
 
         return schemas.File(
             name=file.filename,
