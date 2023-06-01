@@ -75,20 +75,23 @@ class Storage:
         print(chunk_size)
 
         parts = []
+        now = 0
 
         for i in range(len(content) % (n - 1)):
-            part = content[i * (chunk_size + 1) : (i + 1) * (chunk_size + 1)]
+            part = content[now : now + chunk_size + 1]
             parts.append(part)
             part_file = f"/var/raid/block-{i}/{file.filename}"  # 部分檔案的檔名，例如 part1.bin、part2.bin、part3.bin 等
             with open(part_file, "wb") as f:
                 f.write(part)
+            now += chunk_size + 1
 
         for i in range((n - 1) - (len(content) % (n - 1))):
-            part = content[i * chunk_size : (i + 1) * chunk_size] + b"\x00"
+            part = content[now : now + chunk_size] + b"\x00"
             parts.append(part)
             part_file = f"/var/raid/block-{i}/{file.filename}"  # 部分檔案的檔名，例如 part1.bin、part2.bin、part3.bin 等
             with open(part_file, "wb") as f:
                 f.write(part)
+            now += chunk_size + 1
 
         parity_block = bytearray()
 
