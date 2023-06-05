@@ -54,7 +54,7 @@ async def create_file(file: UploadFile):
     except Exception as e:
         if str(e) == "File size too large":
             print(e)
-            detail = {"detail": "File Too Large"}
+            detail = {"detail": "File too large"}
             response = Response(
                 content=json.dumps(detail),
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,

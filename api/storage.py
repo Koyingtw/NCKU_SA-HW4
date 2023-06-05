@@ -99,9 +99,9 @@ class Storage:
                 f.write(part)
             now += chunk_size
 
-        parity_block = bytearray()
+        parity_block = bytearray(parts[0])
 
-        for part in parts:
+        for part in parts[1:]:
             parity_block = bytes(_a ^ _b for _a, _b in zip(parity_block, part))
 
         # for i in range(chunk_size):
