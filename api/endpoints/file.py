@@ -61,11 +61,20 @@ async def create_file(file: UploadFile):
             )
             response.headers["Content-Type"] = "application/json"
             return response
-        if str(e) == "File already exists":
+        elif str(e) == "File already exists":
             print(e)
             detail = {"detail": "File already exists"}
             response = Response(
                 content=json.dumps(detail), status_code=status.HTTP_409_CONFLICT
+            )
+            response.headers["Content-Type"] = "application/json"
+            return response
+        else:
+            print(e)
+            detail = {"detail": "Validation Error"}
+            response = Response(
+                content=json.dumps(detail),
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
             response.headers["Content-Type"] = "application/json"
             return response

@@ -86,7 +86,7 @@ class Storage:
 
             if os.path.exists(part_file):
                 with open(part_file, "rb") as f:
-                    old_part = await f.read()
+                    old_part = f.read()
                     if (
                         hashlib.md5(part).hexdigest()
                         == hashlib.md5(old_part).hexdigest()
@@ -104,7 +104,7 @@ class Storage:
 
             if os.path.exists(part_file):
                 with open(part_file, "rb") as f:
-                    old_part = await f.read()
+                    old_part = f.read()
                     if (
                         hashlib.md5(part).hexdigest()
                         == hashlib.md5(old_part).hexdigest()
@@ -133,7 +133,6 @@ class Storage:
             f.write(parity_block)
 
         if len(content) > settings.MAX_SIZE:
-            # return schemas.File()
             raise Exception("File size too large")
 
         return schemas.File(
