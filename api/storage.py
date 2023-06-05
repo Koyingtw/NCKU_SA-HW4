@@ -87,6 +87,9 @@ class Storage:
             part = content[now : now + chunk_size + 1]
             parts.append(part)
             part_file = f"/var/raid/block-{i}/{file.filename}"  # 部分檔案的檔名，例如 part1.bin、part2.bin、part3.bin 等
+
+            if os.path.exists(part_file):
+                raise Exception("File already exists")
             with open(part_file, "wb") as f:
                 f.write(part)
             now += chunk_size + 1
@@ -95,6 +98,9 @@ class Storage:
             part = content[now : now + chunk_size] + b"\x00"
             parts.append(part)
             part_file = f"/var/raid/block-{i}/{file.filename}"  # 部分檔案的檔名，例如 part1.bin、part2.bin、part3.bin 等
+
+            if os.path.exists(part_file):
+                raise Exception("File already exists")
             with open(part_file, "wb") as f:
                 f.write(part)
             now += chunk_size
