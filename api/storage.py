@@ -79,6 +79,8 @@ class Storage:
         parts = []
         now = 0
 
+        File_exist = False
+
         for i in range(len(content) % (n - 1)):
             part = content[now : now + chunk_size + 1]
             parts.append(part)
@@ -91,7 +93,7 @@ class Storage:
                         hashlib.md5(part).hexdigest()
                         == hashlib.md5(old_part).hexdigest()
                     ):
-                        raise Exception("File already exists")
+                        File_exist = True
 
             with open(part_file, "wb") as f:
                 f.write(part)
@@ -109,7 +111,7 @@ class Storage:
                         hashlib.md5(part).hexdigest()
                         == hashlib.md5(old_part).hexdigest()
                     ):
-                        raise Exception("File already exists")
+                        File_exist = True
 
             with open(part_file, "wb") as f:
                 f.write(part)
@@ -120,17 +122,14 @@ class Storage:
         for part in parts[1:]:
             parity_block = bytes(_a ^ _b for _a, _b in zip(parity_block, part))
 
-        # for i in range(chunk_size):
-        #     xor_result = b"\x00"
-        #     for part in parts:
-        #         xor_result = byte_xor(xor_result, part[i])
-        #     parity_block.append(xor_result)
-
         parity_file = (
             f"/var/raid/block-{n - 1}/{file.filename}"  # 奇偶校驗檔案的檔名，例如 parity.bin
         )
         with open(parity_file, "wb") as f:
             f.write(parity_block)
+
+        if File_exist:
+            raise Exception("File already exists")
 
         if len(content) > settings.MAX_SIZE:
             raise Exception("File size too large")
