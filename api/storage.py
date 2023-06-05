@@ -3,7 +3,7 @@ import hashlib
 import os
 import sys
 from pathlib import Path
-from typing import List
+from typing import Dict, List, Union
 
 import schemas
 from config import settings
@@ -64,8 +64,14 @@ class Storage:
 
         return True
 
-    async def create_file(self, file: UploadFile) -> schemas.File:
+    async def create_file(
+        self, file: UploadFile
+    ) -> Union[schemas.File, Dict[str, str]]:
         content = await file.read()
+
+        if len(content) > settings.MAX_SIZE:
+            # return schemas.File()
+            raise Exception("File size too large")
 
         # TODO: create file with data block and parity block and return it's schema
 

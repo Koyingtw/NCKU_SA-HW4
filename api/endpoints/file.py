@@ -1,3 +1,5 @@
+import json
+
 import schemas
 from fastapi import APIRouter, Response, UploadFile, status
 from storage import storage
@@ -21,7 +23,20 @@ POST_FILE = {
                 }
             }
         },
-    }
+    },
+    213: {
+        "description": "File Too Large",
+        "content": {
+            "application/json": {
+                "schema": {
+                    "type": "object",
+                    "properties": {
+                        "detail": {"type": "string"},
+                    },
+                }
+            },
+        },
+    },
 }
 
 
@@ -32,8 +47,28 @@ POST_FILE = {
     responses=POST_FILE,
     name="file:create_file",
 )
-async def create_file(file: UploadFile) -> schemas.File:
-    return await storage.create_file(file)
+async def create_file(file: UploadFile):
+
+    try:
+        return await storage.create_file(file)
+    except Exception as e:
+        if str(e) == "File size too large":
+            print(e)
+            detail = {"detail": "File Too Large"}
+            response = Response(
+                content=json.dumps(detail),
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            )
+            response.headers["Content-Type"] = "application/json"
+            return response
+        if str(e) == "File already exists":
+            print(e)
+            detail = {"detail": "File already exists"}
+            response = Response(
+                content=json.dumps(detail), status_code=status.HTTP_409_CONFLICT
+            )
+            response.headers["Content-Type"] = "application/json"
+            return response
 
 
 @router.get("/", status_code=status.HTTP_200_OK, name="file:retrieve_file")
