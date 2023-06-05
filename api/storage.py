@@ -91,7 +91,7 @@ class Storage:
             part_file = f"/var/raid/block-{i}/{file.filename}"  # 部分檔案的檔名，例如 part1.bin、part2.bin、part3.bin 等
             with open(part_file, "wb") as f:
                 f.write(part)
-            now += chunk_size + 1
+            now += chunk_size
 
         parity_block = bytearray()
 
