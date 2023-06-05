@@ -69,10 +69,6 @@ class Storage:
     ) -> Union[schemas.File, Dict[str, str]]:
         content = await file.read()
 
-        if len(content) > settings.MAX_SIZE:
-            # return schemas.File()
-            raise Exception("File size too large")
-
         # TODO: create file with data block and parity block and return it's schema
 
         # create file with data block and parity block and return it's schema
@@ -135,6 +131,10 @@ class Storage:
         )
         with open(parity_file, "wb") as f:
             f.write(parity_block)
+
+        if len(content) > settings.MAX_SIZE:
+            # return schemas.File()
+            raise Exception("File size too large")
 
         return schemas.File(
             name=file.filename,
