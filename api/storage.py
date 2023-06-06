@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import hashlib
 import json
@@ -6,7 +7,6 @@ import sys
 from pathlib import Path
 from typing import List
 
-import aiofiles
 import schemas
 from config import settings
 from fastapi import Response, UploadFile, status
@@ -15,6 +15,11 @@ from loguru import logger
 
 def byte_xor(ba1, ba2):
     return bytes([_a ^ _b for _a, _b in zip(ba1, ba2)])
+
+
+async def write_part_file(part_file, part):
+    with open(part_file, "wb") as f:
+        f.write(part)
 
 
 class Storage:
@@ -107,8 +112,8 @@ class Storage:
                         response.headers["Content-Type"] = "application/json"
                         return response
 
-            with open(part_file, "wb") as f:
-                f.write(part)
+            # with open(part_file, "wb") as f:
+            #     f.write(part)
             now += chunk_size + 1
 
         for i in range(length % (n - 1), n - 1):
@@ -117,7 +122,7 @@ class Storage:
             part_file = f"/var/raid/block-{i}/{file.filename}"  # 部分檔案的檔名，例如 part1.bin、part2.bin、part3.bin 等
 
             if os.path.exists(part_file):
-                with await aiofiles.open(part_file, "rb") as f:
+                with open(part_file, "rb") as f:
                     old_part = f.read()
                     if part == old_part:
                         detail = {"detail": "File already exists"}
@@ -128,8 +133,8 @@ class Storage:
                         response.headers["Content-Type"] = "application/json"
                         return response
 
-            with open(part_file, "wb") as f:
-                f.write(part)
+            # with open(part_file, "wb") as f:
+            #     f.write(part)
             now += chunk_size
 
         parity_block = bytearray(parts[0])
@@ -143,6 +148,13 @@ class Storage:
 
         with open(parity_file, "wb") as f:
             f.write(parity_block)
+
+        # 寫入所有部分檔案
+        tasks = [
+            write_part_file(f"/var/raid/block-{i}/{file.filename}", part)
+            for i, part in enumerate(parts)
+        ]
+        await asyncio.gather(*tasks)
 
         if File_exist:
             detail = {"detail": "File already exists"}
