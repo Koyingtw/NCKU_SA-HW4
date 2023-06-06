@@ -73,8 +73,8 @@ class Storage:
             response = Response(
                 content=json.dumps(detail),
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                headers={"Content-Type": "application/json"},
             )
-            response.headers["Content-Type"] = "application/json"
             return response
         # TODO: create file with data block and parity block and return it's schema
 
