@@ -73,8 +73,8 @@ class Storage:
             response = Response(
                 content=json.dumps(detail),
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                headers={"Content-Type": "application/json"},
             )
+            response.headers["Content-Type"] = "application/json"
             return response
         # TODO: create file with data block and parity block and return it's schema
 
@@ -144,20 +144,6 @@ class Storage:
         parity_file = (
             f"/var/raid/block-{n - 1}/{file.filename}"  # 奇偶校驗檔案的檔名，例如 parity.bin
         )
-
-        if os.path.exists(parity_file):
-            with open(parity_file, "rb") as f:
-                old_parity = f.read()
-                if (
-                    hashlib.md5(parity_block).hexdigest()
-                    == hashlib.md5(old_parity).hexdigest()
-                ):
-                    detail = {"detail": "File already exists"}
-                    response = Response(
-                        content=json.dumps(detail), status_code=status.HTTP_409_CONFLICT
-                    )
-                    response.headers["Content-Type"] = "application/json"
-                    return response
 
         with open(parity_file, "wb") as f:
             f.write(parity_block)
