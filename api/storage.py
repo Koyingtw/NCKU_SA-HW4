@@ -94,6 +94,7 @@ class Storage:
             part_file = f"/var/raid/block-{i}/{file.filename}"  # 部分檔案的檔名，例如 part1.bin、part2.bin、part3.bin 等
 
             if os.path.exists(part_file):
+                File_exist = True
                 with open(part_file, "rb") as f:
                     old_part = f.read()
                     if (
@@ -112,6 +113,7 @@ class Storage:
             part_file = f"/var/raid/block-{i}/{file.filename}"  # 部分檔案的檔名，例如 part1.bin、part2.bin、part3.bin 等
 
             if os.path.exists(part_file):
+                File_exist = True
                 with open(part_file, "rb") as f:
                     old_part = f.read()
                     if (
