@@ -2,6 +2,7 @@ import json
 
 import schemas
 from fastapi import APIRouter, Response, UploadFile, status
+from settings import settings
 from storage import storage
 
 router = APIRouter()
@@ -36,20 +37,23 @@ POST_FILE = {
 )
 async def create_file(file: UploadFile):
     # return await storage.create_file(file)
+
+    content = await file.read()
+    if len(content) > settings.MAX_SIZE:
+        detail = {"detail": "File too large"}
+        response = Response(
+            content=json.dumps(detail),
+            status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+        )
+        response.headers["Content-Type"] = "application/json"
+        return response
+
+    return await storage.create_file(file)
     try:
         ret = await storage.create_file(file)
         return ret
     except Exception as e:
-        if str(e) == "File size too large":
-            print(e)
-            detail = {"detail": "File too large"}
-            response = Response(
-                content=json.dumps(detail),
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            )
-            response.headers["Content-Type"] = "application/json"
-            return response
-        elif str(e) == "File already exists":
+        if str(e) == "File already exists":
             print(e)
             detail = {"detail": "File already exists"}
             response = Response(
