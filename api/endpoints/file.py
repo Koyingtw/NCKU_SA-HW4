@@ -1,8 +1,8 @@
 import json
 
 import schemas
+from config import settings
 from fastapi import APIRouter, Response, UploadFile, status
-from settings import settings
 from storage import storage
 
 router = APIRouter()
@@ -36,7 +36,7 @@ POST_FILE = {
     name="file:create_file",
 )
 async def create_file(file: UploadFile):
-    # return await storage.create_file(file)
+    return await storage.create_file(file)
 
     content = await file.read()
     if len(content) > settings.MAX_SIZE:
