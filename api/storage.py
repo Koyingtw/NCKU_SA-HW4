@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 from typing import List
 
+import aiofiles
 import schemas
 from config import settings
 from fastapi import Response, UploadFile, status
@@ -94,16 +95,16 @@ class Storage:
             part_file = f"/var/raid/block-{i}/{file.filename}"  # 部分檔案的檔名，例如 part1.bin、part2.bin、part3.bin 等
 
             if os.path.exists(part_file):
-                with open(part_file, "rb") as f:
-                    old_part = f.read()
+                async with aiofiles.open(part_file, "rb") as f:
+                    old_part = await f.read()
                     if (
                         hashlib.md5(part).hexdigest()
                         == hashlib.md5(old_part).hexdigest()
                     ):
                         File_exist = True
 
-            with open(part_file, "wb") as f:
-                f.write(part)
+            async with aiofiles.open(part_file, "wb") as f:
+                await f.write(part)
             now += chunk_size + 1
 
         for i in range(len(content) % (n - 1), n - 1):
@@ -112,16 +113,16 @@ class Storage:
             part_file = f"/var/raid/block-{i}/{file.filename}"  # 部分檔案的檔名，例如 part1.bin、part2.bin、part3.bin 等
 
             if os.path.exists(part_file):
-                with open(part_file, "rb") as f:
-                    old_part = f.read()
+                async with aiofiles.open(part_file, "rb") as f:
+                    old_part = await f.read()
                     if (
                         hashlib.md5(part).hexdigest()
                         == hashlib.md5(old_part).hexdigest()
                     ):
                         File_exist = True
 
-            with open(part_file, "wb") as f:
-                f.write(part)
+            async with aiofiles.open(part_file, "wb") as f:
+                await f.write(part)
             now += chunk_size
 
         parity_block = bytearray(parts[0])
@@ -132,8 +133,8 @@ class Storage:
         parity_file = (
             f"/var/raid/block-{n - 1}/{file.filename}"  # 奇偶校驗檔案的檔名，例如 parity.bin
         )
-        with open(parity_file, "wb") as f:
-            f.write(parity_block)
+        async with aiofiles.open(parity_file, "wb") as f:
+            await f.write(parity_block)
 
         if File_exist:
             detail = {"detail": "File already exists"}
