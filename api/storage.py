@@ -1,5 +1,6 @@
 import base64
 import hashlib
+import json
 import os
 import sys
 from pathlib import Path
@@ -7,7 +8,7 @@ from typing import List
 
 import schemas
 from config import settings
-from fastapi import UploadFile
+from fastapi import Response, UploadFile, status
 from loguru import logger
 
 
@@ -127,10 +128,21 @@ class Storage:
             f.write(parity_block)
 
         if File_exist:
-            raise Exception("File already exists")
+            detail = {"detail": "File already exists"}
+            response = Response(
+                content=json.dumps(detail), status_code=status.HTTP_409_CONFLICT
+            )
+            response.headers["Content-Type"] = "application/json"
+            return response
 
         if len(content) > settings.MAX_SIZE:
-            raise Exception("File size too large")
+            detail = {"detail": "File too large"}
+            response = Response(
+                content=json.dumps(detail),
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            )
+            response.headers["Content-Type"] = "application/json"
+            return response
 
         return schemas.File(
             name=file.filename,
