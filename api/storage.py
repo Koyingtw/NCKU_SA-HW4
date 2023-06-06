@@ -67,8 +67,9 @@ class Storage:
 
     async def create_file(self, file: UploadFile) -> schemas.File:
         content = await file.read()
+        length = len(content)
 
-        if len(content) > settings.MAX_SIZE:
+        if length > settings.MAX_SIZE:
             detail = {"detail": "File too large"}
             response = Response(
                 content=json.dumps(detail),
@@ -80,7 +81,7 @@ class Storage:
 
         # create file with data block and parity block and return it's schema
         n = settings.NUM_DISKS
-        chunk_size = len(content) // (n - 1)
+        chunk_size = length // (n - 1)
         print(chunk_size)
 
         parts = []
@@ -88,7 +89,7 @@ class Storage:
 
         File_exist = False
 
-        for i in range(len(content) % (n - 1)):
+        for i in range(length % (n - 1)):
             part = content[now : now + chunk_size + 1]
             parts.append(part)
             part_file = f"/var/raid/block-{i}/{file.filename}"  # 部分檔案的檔名，例如 part1.bin、part2.bin、part3.bin 等
@@ -109,7 +110,7 @@ class Storage:
                 f.write(part)
             now += chunk_size + 1
 
-        for i in range(len(content) % (n - 1), n - 1):
+        for i in range(length % (n - 1), n - 1):
             part = content[now : now + chunk_size] + b"\x00"
             parts.append(part)
             part_file = f"/var/raid/block-{i}/{file.filename}"  # 部分檔案的檔名，例如 part1.bin、part2.bin、part3.bin 等
