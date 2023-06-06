@@ -3,7 +3,7 @@ import hashlib
 import os
 import sys
 from pathlib import Path
-from typing import Dict, List, Union
+from typing import List
 
 import schemas
 from config import settings
@@ -64,9 +64,7 @@ class Storage:
 
         return True
 
-    async def create_file(
-        self, file: UploadFile
-    ) -> Union[schemas.File, Dict[str, str]]:
+    async def create_file(self, file: UploadFile) -> schemas.File:
         content = await file.read()
 
         # TODO: create file with data block and parity block and return it's schema
