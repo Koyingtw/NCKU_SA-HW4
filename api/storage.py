@@ -68,6 +68,14 @@ class Storage:
     async def create_file(self, file: UploadFile) -> schemas.File:
         content = await file.read()
 
+        if len(content) > settings.MAX_SIZE:
+            detail = {"detail": "File too large"}
+            response = Response(
+                content=json.dumps(detail),
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+            )
+            response.headers["Content-Type"] = "application/json"
+            return response
         # TODO: create file with data block and parity block and return it's schema
 
         # create file with data block and parity block and return it's schema
@@ -131,15 +139,6 @@ class Storage:
             detail = {"detail": "File already exists"}
             response = Response(
                 content=json.dumps(detail), status_code=status.HTTP_409_CONFLICT
-            )
-            response.headers["Content-Type"] = "application/json"
-            return response
-
-        if len(content) > settings.MAX_SIZE:
-            detail = {"detail": "File too large"}
-            response = Response(
-                content=json.dumps(detail),
-                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             )
             response.headers["Content-Type"] = "application/json"
             return response
