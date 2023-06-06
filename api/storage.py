@@ -133,6 +133,9 @@ class Storage:
         parity_file = (
             f"/var/raid/block-{n - 1}/{file.filename}"  # 奇偶校驗檔案的檔名，例如 parity.bin
         )
+
+        print("data block complete")
+
         async with aiofiles.open(parity_file, "wb") as f:
             await f.write(parity_block)
 
@@ -144,6 +147,7 @@ class Storage:
             response.headers["Content-Type"] = "application/json"
             return response
 
+        print("parity block complete")
         return schemas.File(
             name=file.filename,
             size=len(content),
