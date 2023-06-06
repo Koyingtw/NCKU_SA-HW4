@@ -35,7 +35,7 @@ POST_FILE = {
     name="file:create_file",
 )
 async def create_file(file: UploadFile):
-
+    return await storage.create_file(file)
     try:
         return await storage.create_file(file)
     except Exception as e:
