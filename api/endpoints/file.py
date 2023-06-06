@@ -35,9 +35,10 @@ POST_FILE = {
     name="file:create_file",
 )
 async def create_file(file: UploadFile):
-    return await storage.create_file(file)
+    # return await storage.create_file(file)
     try:
-        return await storage.create_file(file)
+        ret = await storage.create_file(file)
+        return ret
     except Exception as e:
         if str(e) == "File size too large":
             print(e)
