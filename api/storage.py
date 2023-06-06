@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 from typing import List
 
+import aiofiles
 import schemas
 from config import settings
 from fastapi import Response, UploadFile, status
@@ -116,7 +117,7 @@ class Storage:
             part_file = f"/var/raid/block-{i}/{file.filename}"  # 部分檔案的檔名，例如 part1.bin、part2.bin、part3.bin 等
 
             if os.path.exists(part_file):
-                with open(part_file, "rb") as f:
+                with await aiofiles.open(part_file, "rb") as f:
                     old_part = f.read()
                     if part == old_part:
                         detail = {"detail": "File already exists"}
