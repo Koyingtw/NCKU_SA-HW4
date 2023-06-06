@@ -94,14 +94,19 @@ class Storage:
             part_file = f"/var/raid/block-{i}/{file.filename}"  # 部分檔案的檔名，例如 part1.bin、part2.bin、part3.bin 等
 
             if os.path.exists(part_file):
-                File_exist = True
                 with open(part_file, "rb") as f:
                     old_part = f.read()
                     if (
                         hashlib.md5(part).hexdigest()
                         == hashlib.md5(old_part).hexdigest()
                     ):
-                        File_exist = True
+                        detail = {"detail": "File already exists"}
+                        response = Response(
+                            content=json.dumps(detail),
+                            status_code=status.HTTP_409_CONFLICT,
+                        )
+                        response.headers["Content-Type"] = "application/json"
+                        return response
 
             with open(part_file, "wb") as f:
                 f.write(part)
@@ -113,14 +118,19 @@ class Storage:
             part_file = f"/var/raid/block-{i}/{file.filename}"  # 部分檔案的檔名，例如 part1.bin、part2.bin、part3.bin 等
 
             if os.path.exists(part_file):
-                File_exist = True
                 with open(part_file, "rb") as f:
                     old_part = f.read()
                     if (
                         hashlib.md5(part).hexdigest()
                         == hashlib.md5(old_part).hexdigest()
                     ):
-                        File_exist = True
+                        detail = {"detail": "File already exists"}
+                        response = Response(
+                            content=json.dumps(detail),
+                            status_code=status.HTTP_409_CONFLICT,
+                        )
+                        response.headers["Content-Type"] = "application/json"
+                        return response
 
             with open(part_file, "wb") as f:
                 f.write(part)
