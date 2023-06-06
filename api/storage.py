@@ -96,10 +96,7 @@ class Storage:
             if os.path.exists(part_file):
                 with open(part_file, "rb") as f:
                     old_part = f.read()
-                    if (
-                        hashlib.md5(part).hexdigest()
-                        == hashlib.md5(old_part).hexdigest()
-                    ):
+                    if part == old_part:
                         detail = {"detail": "File already exists"}
                         response = Response(
                             content=json.dumps(detail),
@@ -120,10 +117,7 @@ class Storage:
             if os.path.exists(part_file):
                 with open(part_file, "rb") as f:
                     old_part = f.read()
-                    if (
-                        hashlib.md5(part).hexdigest()
-                        == hashlib.md5(old_part).hexdigest()
-                    ):
+                    if part == old_part:
                         detail = {"detail": "File already exists"}
                         response = Response(
                             content=json.dumps(detail),
