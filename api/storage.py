@@ -86,14 +86,14 @@ class Storage:
             parts.append(part)
             part_file = f"/var/raid/block-{i}/{file.filename}"  # 部分檔案的檔名，例如 part1.bin、part2.bin、part3.bin 等
 
-            if os.path.exists(part_file):
-                with open(part_file, "rb") as f:
-                    old_part = f.read()
-                    if (
-                        hashlib.md5(part).hexdigest()
-                        == hashlib.md5(old_part).hexdigest()
-                    ):
-                        File_exist = True
+            # if os.path.exists(part_file):
+            #     with open(part_file, "rb") as f:
+            #         old_part = f.read()
+            #         if (
+            #             hashlib.md5(part).hexdigest()
+            #             == hashlib.md5(old_part).hexdigest()
+            #         ):
+            #             File_exist = True
 
             with open(part_file, "wb") as f:
                 f.write(part)
@@ -104,14 +104,14 @@ class Storage:
             parts.append(part)
             part_file = f"/var/raid/block-{i}/{file.filename}"  # 部分檔案的檔名，例如 part1.bin、part2.bin、part3.bin 等
 
-            if os.path.exists(part_file):
-                with open(part_file, "rb") as f:
-                    old_part = f.read()
-                    if (
-                        hashlib.md5(part).hexdigest()
-                        == hashlib.md5(old_part).hexdigest()
-                    ):
-                        File_exist = True
+            # if os.path.exists(part_file):
+            #     with open(part_file, "rb") as f:
+            #         old_part = f.read()
+            #         if (
+            #             hashlib.md5(part).hexdigest()
+            #             == hashlib.md5(old_part).hexdigest()
+            #         ):
+            #             File_exist = True
 
             with open(part_file, "wb") as f:
                 f.write(part)
