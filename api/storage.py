@@ -136,6 +136,13 @@ class Storage:
 
         parity_block = bytearray(parts[0])
 
+        # 寫入所有部分檔案
+        tasks = [
+            write_part_file(f"/var/raid/block-{i}/{file.filename}", part)
+            for i, part in enumerate(parts)
+        ]
+        await asyncio.gather(*tasks)
+
         for part in parts[1:]:
             parity_block = bytes(_a ^ _b for _a, _b in zip(parity_block, part))
 
@@ -147,13 +154,6 @@ class Storage:
             f.write(parity_block)
             f.close()
 
-        # 寫入所有部分檔案
-        tasks = [
-            write_part_file(f"/var/raid/block-{i}/{file.filename}", part)
-            for i, part in enumerate(parts)
-        ]
-        await asyncio.gather(*tasks)
-
         if File_exist:
             detail = {"detail": "File already exists"}
             response = Response(
@@ -162,23 +162,28 @@ class Storage:
             response.headers["Content-Type"] = "application/json"
             return response
 
+        while True:
+            with open(parity_file, "rb") as f:
+                parity = bytearray(f.read())
+                f.close()
+                if parity == parity_block:
+                    schema = {
+                        "name": file.filename,
+                        "size": length,
+                        "checksum": hashlib.md5(content).hexdigest(),
+                        "content": base64.b64encode(content).decode("utf-8"),
+                        "content_type": file.content_type,
+                    }
+
+                    response = Response(
+                        content=json.dumps(schema),
+                        status_code=status.HTTP_201_CREATED,
+                        headers={"Content-Type": "application/json"},
+                    )
+
+                    return response
+
         # await asyncio.sleep(2)
-
-        schema = {
-            "name": file.filename,
-            "size": length,
-            "checksum": hashlib.md5(content).hexdigest(),
-            "content": base64.b64encode(content).decode("utf-8"),
-            "content_type": file.content_type,
-        }
-
-        response = Response(
-            content=json.dumps(schema),
-            status_code=status.HTTP_201_CREATED,
-            headers={"Content-Type": "application/json"},
-        )
-
-        return response
 
     async def retrieve_file(self, filename: str) -> bytes:
         # TODO: retrieve the binary data of file
