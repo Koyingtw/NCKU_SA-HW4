@@ -174,6 +174,8 @@ class Storage:
             response.headers["Content-Type"] = "application/json"
             return response
 
+        await asyncio.sleep(1)
+
         return schemas.File(
             name=file.filename,
             size=len(content),

@@ -24,6 +24,17 @@ POST_FILE = {
             }
         },
     },
+    409: {
+        "description": "File already exists",
+        "content": {
+            "application/json": {
+                "schema": {
+                    "type": "object",
+                    "properties": {"detail": {"type": "string"}},
+                }
+            }
+        },
+    },
     413: {
         "description": "File too large",
         "content": {
