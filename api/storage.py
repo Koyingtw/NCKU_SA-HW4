@@ -143,6 +143,10 @@ class Storage:
         ]
         await asyncio.gather(*tasks)
 
+        with open(f"/var/raid/block-0/{file.filename}", "rb") as f:
+            temp = f.read()
+            print(temp)
+
         for part in parts[1:]:
             parity_block = bytes(_a ^ _b for _a, _b in zip(parity_block, part))
 
@@ -199,7 +203,7 @@ class Storage:
             if os.path.exists(file_path):
                 file_exist = True
                 with open(file_path, "rb") as f:
-                    file_content = await f.read()
+                    file_content = f.read()
                     f.close()
 
                 # 移除尾部的填充 0x00
