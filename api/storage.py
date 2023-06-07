@@ -68,7 +68,17 @@ class Storage:
             return False
 
         # parity verify must success
-
+        xor_result = bytearray()
+        for i in range(num_disks - 1):
+            if i == 0:
+                with open(data_blocks[i], "rb") as f:
+                    xor_result = bytearray(f.read())
+            else:
+                with open(data_blocks[i], "rb") as f:
+                    xor_result = byte_xor(xor_result, bytearray(f.read()))
+        with open(parity_block, "rb") as f:
+            if xor_result != bytearray(f.read()):
+                return False
         return True
 
     async def create_file(self, file: UploadFile) -> schemas.File:
@@ -174,6 +184,25 @@ class Storage:
 
     async def retrieve_file(self, filename: str) -> bytes:
         # TODO: retrieve the binary data of file
+        file_data = b""
+
+        folder_names = os.listdir("/var/raid/")
+        folder_names.sort()  # 確保按照順序讀取檔案
+        print(folder_names)
+
+        for i in range(len(folder_names) - 1):
+            file_path = f"/var/raid/block-{i}/{filename}"
+
+            with open(file_path, "rb") as f:
+                file_content = f.read()
+
+            # 移除尾部的填充 0x00
+            file_content = file_content.rstrip(b"\x00")
+
+            # 連接二進位數據
+            file_data += file_content
+
+        return file_data
 
         return b"".join("m3ow".encode() for _ in range(100))
 
