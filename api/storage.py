@@ -145,7 +145,7 @@ class Storage:
 
         with open(f"/var/raid/block-0/{file.filename}", "rb") as f:
             temp = f.read()
-            print(temp)
+            logger.warning(temp)
 
         for part in parts[1:]:
             parity_block = bytes(_a ^ _b for _a, _b in zip(parity_block, part))
