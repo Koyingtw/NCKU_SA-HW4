@@ -20,6 +20,7 @@ def byte_xor(ba1, ba2):
 async def write_part_file(part_file, part):
     with open(part_file, "wb") as f:
         f.write(part)
+        f.close()
 
 
 class Storage:
@@ -73,12 +74,15 @@ class Storage:
             if i == 0:
                 with open(data_blocks[i], "rb") as f:
                     xor_result = bytearray(f.read())
+                    f.close()
             else:
                 with open(data_blocks[i], "rb") as f:
                     xor_result = byte_xor(xor_result, bytearray(f.read()))
+                    f.close()
         with open(parity_block, "rb") as f:
             if xor_result != bytearray(f.read()):
                 return False
+            f.close()
         return True
 
     async def create_file(self, file: UploadFile) -> schemas.File:
@@ -97,17 +101,18 @@ class Storage:
                 headers={"Content-Type": "application/json"},
             )
             return response
-        n = settings.NUM_DISKS
 
-        # old_file = await self.retrieve_file(file.filename)
-        # if old_file == content:
-        #     detail = {"detail": "File already exists"}
-        #     response = Response(
-        #         content=json.dumps(detail),
-        #         status_code=status.HTTP_409_CONFLICT,
-        #     )
-        #     response.headers["Content-Type"] = "application/json"
-        #     return response
+        old_file = await self.retrieve_file(file.filename)
+        if old_file == content:
+            detail = {"detail": "File already exists"}
+            response = Response(
+                content=json.dumps(detail),
+                status_code=status.HTTP_409_CONFLICT,
+            )
+            response.headers["Content-Type"] = "application/json"
+            return response
+
+        n = settings.NUM_DISKS
 
         chunk_size = length // (n - 1)
         print(chunk_size)
@@ -120,38 +125,12 @@ class Storage:
         for i in range(length % (n - 1)):
             part = content[now : now + chunk_size + 1]
             parts.append(part)
-            # part_file = f"/var/raid/block-{i}/{file.filename}"  # 部分檔案的檔名，例如 part1.bin、part2.bin、part3.bin 等
-
-            # if os.path.exists(part_file):
-            #     with open(part_file, "rb") as f:
-            #         old_part = f.read()
-            #         if part == old_part:
-            #             detail = {"detail": "File already exists"}
-            #             response = Response(
-            #                 content=json.dumps(detail),
-            #                 status_code=status.HTTP_409_CONFLICT,
-            #             )
-            #             response.headers["Content-Type"] = "application/json"
-            #             return response
 
             now += chunk_size + 1
 
         for i in range(length % (n - 1), n - 1):
             part = content[now : now + chunk_size] + b"\x00"
             parts.append(part)
-            # part_file = f"/var/raid/block-{i}/{file.filename}"  # 部分檔案的檔名，例如 part1.bin、part2.bin、part3.bin 等
-
-            # if os.path.exists(part_file):
-            #     with open(part_file, "rb") as f:
-            #         old_part = f.read()
-            #         if part == old_part:
-            #             detail = {"detail": "File already exists"}
-            #             response = Response(
-            #                 content=json.dumps(detail),
-            #                 status_code=status.HTTP_409_CONFLICT,
-            #             )
-            #             response.headers["Content-Type"] = "application/json"
-            #             return response
 
             now += chunk_size
 
@@ -166,6 +145,7 @@ class Storage:
 
         with open(parity_file, "wb") as f:
             f.write(parity_block)
+            f.close()
 
         # 寫入所有部分檔案
         tasks = [
@@ -182,7 +162,7 @@ class Storage:
             response.headers["Content-Type"] = "application/json"
             return response
 
-        await asyncio.sleep(2)
+        # await asyncio.sleep(2)
 
         schema = {
             "name": file.filename,
@@ -216,6 +196,7 @@ class Storage:
                 file_exist = True
                 with open(file_path, "rb") as f:
                     file_content = f.read()
+                    f.close()
 
                 # 移除尾部的填充 0x00
                 file_content = file_content.rstrip(b"\x00")
