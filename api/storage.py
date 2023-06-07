@@ -186,6 +186,9 @@ class Storage:
         # TODO: retrieve the binary data of file
         file_data = b""
 
+        if not os.path.exists(f"/var/raid/block-0/{filename}"):
+            return file_data
+
         folder_names = os.listdir("/var/raid/")
         folder_names.sort()  # 確保按照順序讀取檔案
         print(folder_names)
