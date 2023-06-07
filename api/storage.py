@@ -162,6 +162,7 @@ class Storage:
             response.headers["Content-Type"] = "application/json"
             return response
 
+        await asyncio.sleep(2)
         while True:
             with open(parity_file, "rb") as f:
                 parity = bytearray(f.read())
@@ -183,8 +184,6 @@ class Storage:
 
                     return response
 
-        # await asyncio.sleep(2)
-
     async def retrieve_file(self, filename: str) -> bytes:
         # TODO: retrieve the binary data of file
         file_data = b""
@@ -200,7 +199,7 @@ class Storage:
             if os.path.exists(file_path):
                 file_exist = True
                 with open(file_path, "rb") as f:
-                    file_content = f.read()
+                    file_content = await f.read()
                     f.close()
 
                 # 移除尾部的填充 0x00
