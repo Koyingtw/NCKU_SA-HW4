@@ -40,10 +40,14 @@ async def create_file(file: UploadFile):
 async def retrieve_file(filename: str) -> Response:
     # TODO: Add headers to ensure the filename is displayed correctly
     #       You should also ensure that enables the judge to download files directly
+    file_data = await storage.retrieve_file(filename)
     return Response(
-        await storage.retrieve_file(filename),
+        file_data,
         media_type="application/octet-stream",
-        headers={},
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Content-Length": str(len(file_data)),
+        },
     )
 
 
