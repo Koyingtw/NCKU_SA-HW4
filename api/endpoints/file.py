@@ -23,7 +23,18 @@ POST_FILE = {
                 }
             }
         },
-    }
+    },
+    413: {
+        "description": "File too large",
+        "content": {
+            "application/json": {
+                "schema": {
+                    "type": "object",
+                    "properties": {"detail": {"type": "string"}},
+                }
+            }
+        },
+    },
 }
 
 

@@ -188,26 +188,27 @@ class Storage:
 
         folder_names = os.listdir("/var/raid/")
         folder_names.sort()  # 確保按照順序讀取檔案
-        print(folder_names)
+
+        file_exist = False
 
         for i in range(len(folder_names) - 1):
             file_path = f"/var/raid/block-{i}/{filename}"
 
-            if not os.path.exists(file_path):
-                return b""
+            if os.path.exists(file_path):
+                file_exist = True
+                with open(file_path, "rb") as f:
+                    file_content = f.read()
 
-            with open(file_path, "rb") as f:
-                file_content = f.read()
+                # 移除尾部的填充 0x00
+                file_content = file_content.rstrip(b"\x00")
 
-            # 移除尾部的填充 0x00
-            file_content = file_content.rstrip(b"\x00")
+                # 連接二進位數據
+                file_data += file_content
 
-            # 連接二進位數據
-            file_data += file_content
+        if not file_exist:
+            return b""
 
         return file_data
-
-        return b"".join("m3ow".encode() for _ in range(100))
 
     async def update_file(self, file: UploadFile) -> schemas.File:
         # TODO: update file's data block and parity block and return it's schema
