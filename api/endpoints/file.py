@@ -51,7 +51,6 @@ POST_FILE = {
 
 @router.post(
     "/",
-    status_code=status.HTTP_201_CREATED,
     response_model=schemas.File,
     responses=POST_FILE,
     name="file:create_file",

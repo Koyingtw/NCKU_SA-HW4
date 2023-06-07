@@ -83,6 +83,10 @@ class Storage:
 
     async def create_file(self, file: UploadFile) -> schemas.File:
         content = await file.read()
+        # TODO: create file with data block and parity block and return it's schema
+
+        # create file with data block and parity block and return it's schema
+
         length = len(content)
 
         if length > settings.MAX_SIZE:
@@ -93,10 +97,18 @@ class Storage:
                 headers={"Content-Type": "application/json"},
             )
             return response
-        # TODO: create file with data block and parity block and return it's schema
-
-        # create file with data block and parity block and return it's schema
         n = settings.NUM_DISKS
+
+        old_file = await self.retrieve_file(file.filename)
+        if old_file == content:
+            detail = {"detail": "File already exists"}
+            response = Response(
+                content=json.dumps(detail),
+                status_code=status.HTTP_409_CONFLICT,
+            )
+            response.headers["Content-Type"] = "application/json"
+            return response
+
         chunk_size = length // (n - 1)
         print(chunk_size)
 
@@ -122,8 +134,6 @@ class Storage:
                         response.headers["Content-Type"] = "application/json"
                         return response
 
-            # with open(part_file, "wb") as f:
-            #     f.write(part)
             now += chunk_size + 1
 
         for i in range(length % (n - 1), n - 1):
@@ -143,8 +153,6 @@ class Storage:
                         response.headers["Content-Type"] = "application/json"
                         return response
 
-            # with open(part_file, "wb") as f:
-            #     f.write(part)
             now += chunk_size
 
         parity_block = bytearray(parts[0])
@@ -176,13 +184,21 @@ class Storage:
 
         await asyncio.sleep(1)
 
-        return schemas.File(
-            name=file.filename,
-            size=len(content),
-            checksum=hashlib.md5(content).hexdigest(),
-            content=base64.b64encode(content),
-            content_type=file.content_type,
+        schema = {
+            "name": file.filename,
+            "size": length,
+            "checksum": hashlib.md5(content).hexdigest(),
+            "content": base64.b64encode(content).decode("utf-8"),
+            "content_type": file.content_type,
+        }
+
+        response = Response(
+            content=json.dumps(schema),
+            status_code=status.HTTP_201_CREATED,
+            headers={"Content-Type": "application/json"},
         )
+
+        return response
 
     async def retrieve_file(self, filename: str) -> bytes:
         # TODO: retrieve the binary data of file
