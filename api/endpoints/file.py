@@ -57,7 +57,7 @@ async def retrieve_file(filename: str) -> Response:
             file_data,
             media_type="application/octet-stream",
             headers={
-                "Content-Disposition": f'attachment; filename="{filename}"',
+                "Content-Disposition": f"attachment; filename={filename}",
                 "Content-Length": str(len(file_data)),
             },
         )
