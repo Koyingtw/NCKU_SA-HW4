@@ -90,8 +90,8 @@ class Storage:
             response = Response(
                 content=json.dumps(detail),
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                headers={"Content-Type": "application/json"},
             )
-            response.headers["Content-Type"] = "application/json"
             return response
         # TODO: create file with data block and parity block and return it's schema
 
@@ -186,15 +186,15 @@ class Storage:
         # TODO: retrieve the binary data of file
         file_data = b""
 
-        if not os.path.exists(f"/var/raid/block-0/{filename}"):
-            return file_data
-
         folder_names = os.listdir("/var/raid/")
         folder_names.sort()  # 確保按照順序讀取檔案
         print(folder_names)
 
         for i in range(len(folder_names) - 1):
             file_path = f"/var/raid/block-{i}/{filename}"
+
+            if not os.path.exists(file_path):
+                return b""
 
             with open(file_path, "rb") as f:
                 file_content = f.read()
