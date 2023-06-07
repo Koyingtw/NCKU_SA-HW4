@@ -120,38 +120,38 @@ class Storage:
         for i in range(length % (n - 1)):
             part = content[now : now + chunk_size + 1]
             parts.append(part)
-            part_file = f"/var/raid/block-{i}/{file.filename}"  # 部分檔案的檔名，例如 part1.bin、part2.bin、part3.bin 等
+            # part_file = f"/var/raid/block-{i}/{file.filename}"  # 部分檔案的檔名，例如 part1.bin、part2.bin、part3.bin 等
 
-            if os.path.exists(part_file):
-                with open(part_file, "rb") as f:
-                    old_part = f.read()
-                    if part == old_part:
-                        detail = {"detail": "File already exists"}
-                        response = Response(
-                            content=json.dumps(detail),
-                            status_code=status.HTTP_409_CONFLICT,
-                        )
-                        response.headers["Content-Type"] = "application/json"
-                        return response
+            # if os.path.exists(part_file):
+            #     with open(part_file, "rb") as f:
+            #         old_part = f.read()
+            #         if part == old_part:
+            #             detail = {"detail": "File already exists"}
+            #             response = Response(
+            #                 content=json.dumps(detail),
+            #                 status_code=status.HTTP_409_CONFLICT,
+            #             )
+            #             response.headers["Content-Type"] = "application/json"
+            #             return response
 
             now += chunk_size + 1
 
         for i in range(length % (n - 1), n - 1):
             part = content[now : now + chunk_size] + b"\x00"
             parts.append(part)
-            part_file = f"/var/raid/block-{i}/{file.filename}"  # 部分檔案的檔名，例如 part1.bin、part2.bin、part3.bin 等
+            # part_file = f"/var/raid/block-{i}/{file.filename}"  # 部分檔案的檔名，例如 part1.bin、part2.bin、part3.bin 等
 
-            if os.path.exists(part_file):
-                with open(part_file, "rb") as f:
-                    old_part = f.read()
-                    if part == old_part:
-                        detail = {"detail": "File already exists"}
-                        response = Response(
-                            content=json.dumps(detail),
-                            status_code=status.HTTP_409_CONFLICT,
-                        )
-                        response.headers["Content-Type"] = "application/json"
-                        return response
+            # if os.path.exists(part_file):
+            #     with open(part_file, "rb") as f:
+            #         old_part = f.read()
+            #         if part == old_part:
+            #             detail = {"detail": "File already exists"}
+            #             response = Response(
+            #                 content=json.dumps(detail),
+            #                 status_code=status.HTTP_409_CONFLICT,
+            #             )
+            #             response.headers["Content-Type"] = "application/json"
+            #             return response
 
             now += chunk_size
 
