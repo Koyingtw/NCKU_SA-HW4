@@ -39,6 +39,7 @@ class Storage:
             path.mkdir(parents=True, exist_ok=True)
 
     async def file_integrity(self, filename: str) -> bool:
+        return True
         """TODO: check if file integrity is valid
         file integrated must satisfy following conditions:
             1. all data blocks must exist
