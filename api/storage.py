@@ -103,15 +103,15 @@ class Storage:
             )
             return response
 
-        old_file = await self.retrieve_file(file.filename)
-        if old_file == content:
-            detail = {"detail": "File already exists"}
-            response = Response(
-                content=json.dumps(detail),
-                status_code=status.HTTP_409_CONFLICT,
-            )
-            response.headers["Content-Type"] = "application/json"
-            return response
+        # old_file = await self.retrieve_file(file.filename)
+        # if old_file == content:
+        #     detail = {"detail": "File already exists"}
+        #     response = Response(
+        #         content=json.dumps(detail),
+        #         status_code=status.HTTP_409_CONFLICT,
+        #     )
+        #     response.headers["Content-Type"] = "application/json"
+        #     return response
 
         n = settings.NUM_DISKS
 
