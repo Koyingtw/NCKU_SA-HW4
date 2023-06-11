@@ -41,17 +41,12 @@ class Storage:
     async def file_exist(self, filename: str) -> bool:
         # 1. all data blocks must exist
         num_disks = settings.NUM_DISKS
-        data_blocks = [f"/var/raid/block-{i}/{filename}" for i in range(num_disks - 1)]
-        if not all(os.path.exists(block) for block in data_blocks):
-            print("Not exist")
-            await self.delete_file(filename)
-            return False
 
-        # 3. parity block must exist
-        parity_block = f"/var/raid/block-{num_disks - 1}/{filename}"
-        if not os.path.exists(parity_block):
-            await self.delete_file(filename)
-            return False
+        for i in range(num_disks - 1):
+            if not os.path.exists(f"/var/raid/block-{i}/{filename}"):
+                print(f"/var/raid/block-{i}/{filename} Not exist")
+                await self.delete_file(filename)
+                return False
 
         return True
 
