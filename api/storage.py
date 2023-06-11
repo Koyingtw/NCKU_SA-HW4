@@ -38,8 +38,22 @@ class Storage:
             logger.warning(f"Creating folder: {path}")
             path.mkdir(parents=True, exist_ok=True)
 
+    async def file_exist(self, filename: str) -> bool:
+        # 1. all data blocks must exist
+        num_disks = settings.NUM_DISKS
+        data_blocks = [f"/var/raid/block-{i}/{filename}" for i in range(num_disks - 1)]
+        if not all(os.path.exists(block) for block in data_blocks):
+            print("Not exist")
+            return False
+
+        # 3. parity block must exist
+        parity_block = f"/var/raid/block-{num_disks - 1}/{filename}"
+        if not os.path.exists(parity_block):
+            return False
+
+        return True
+
     async def file_integrity(self, filename: str) -> bool:
-        # return True
         """TODO: check if file integrity is valid
         file integrated must satisfy following conditions:
             1. all data blocks must exist
@@ -53,21 +67,16 @@ class Storage:
         so we need to delete the file
         """
 
-        # 1. all data blocks must exist
         num_disks = settings.NUM_DISKS
         data_blocks = [f"/var/raid/block-{i}/{filename}" for i in range(num_disks - 1)]
-        if not all(os.path.exists(block) for block in data_blocks):
-            print("Not exist")
+        parity_block = f"/var/raid/block-{num_disks - 1}/{filename}"
+
+        if not await self.file_exist(filename):
             return False
 
         # 2. size of all data blocks must be equal
         first_block_size = os.path.getsize(data_blocks[0])
         if not all(os.path.getsize(block) == first_block_size for block in data_blocks):
-            return False
-
-        # 3. parity block must exist
-        parity_block = f"/var/raid/block-{num_disks - 1}/{filename}"
-        if not os.path.exists(parity_block):
             return False
 
         # parity verify must success
@@ -102,15 +111,6 @@ class Storage:
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
                 headers={"Content-Type": "application/json"},
             )
-            return response
-
-        if await self.file_integrity(file.filename):
-            detail = {"detail": "File already exists"}
-            response = Response(
-                content=json.dumps(detail),
-                status_code=status.HTTP_409_CONFLICT,
-            )
-            response.headers["Content-Type"] = "application/json"
             return response
 
         n = settings.NUM_DISKS
@@ -214,21 +214,32 @@ class Storage:
     async def update_file(self, file: UploadFile) -> schemas.File:
         # TODO: update file's data block and parity block and return it's schema
 
-        content = "何?!"
-        return schemas.File(
-            name="m3ow.txt",
-            size=123,
-            checksum=hashlib.md5(content.encode()).hexdigest(),
-            content=base64.b64decode(content.encode()),
-            content_type="text/plain",
-        )
+        return await self.create_file(file)
 
     async def delete_file(self, filename: str) -> None:
         # TODO: delete file's data block and parity block
+
+        for i in range(settings.NUM_DISKS):
+            file_path = f"/var/raid/block-{i}/{filename}"
+            if os.path.exists(file_path):
+                os.remove(file_path)
+
         pass
 
     async def fix_block(self, block_id: int) -> None:
         # TODO: fix the broke block by using rest of block
+        with open(f"/var/raid/block-{block_id}/", "rb") as f:
+            xor_result = bytearray(f.read())
+
+        for i in range(settings.NUM_DISKS - 1):
+            if i == block_id:
+                continue
+            with open(f"/var/raid/block-{i}/", "rb") as f:
+                xor_result = byte_xor(xor_result, bytearray(f.read()))
+
+        with open(f"/var/raid/block-{block_id}/", "wb") as f:
+            f.write(xor_result)
+            f.close()
         pass
 
 
