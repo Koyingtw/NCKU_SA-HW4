@@ -44,13 +44,13 @@ class Storage:
         data_blocks = [f"/var/raid/block-{i}/{filename}" for i in range(num_disks - 1)]
         if not all(os.path.exists(block) for block in data_blocks):
             print("Not exist")
-            self.delete_file(filename)
+            await self.delete_file(filename)
             return False
 
         # 3. parity block must exist
         parity_block = f"/var/raid/block-{num_disks - 1}/{filename}"
         if not os.path.exists(parity_block):
-            self.delete_file(filename)
+            await self.delete_file(filename)
             return False
 
         return True
@@ -321,7 +321,9 @@ class Storage:
         folder_names.sort()  # 確保按照順序讀取檔案
 
         for filename in folder_names:
-            with open(f"/var/raid/block-{settings.NUM_DISKS}/{filename}", "rb") as f:
+            with open(
+                f"/var/raid/block-{settings.NUM_DISKS - 1}/{filename}", "rb"
+            ) as f:
                 xor_result = bytearray(f.read())
             for i in range(settings.NUM_DISKS - 1):
                 if i == block_id:
