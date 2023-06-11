@@ -192,7 +192,7 @@ class Storage:
         folder_names = os.listdir("/var/raid/")
         folder_names.sort()  # 確保按照順序讀取檔案
 
-        if await self.file_integrity(filename):
+        if not await self.file_integrity(filename):
             detail = {"detail": "File not found"}
             response = Response(
                 content=json.dumps(detail), status_code=status.HTTP_404_NOT_FOUND
