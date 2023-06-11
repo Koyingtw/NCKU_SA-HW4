@@ -153,7 +153,7 @@ class Storage:
             f.write(parity_block)
             f.close()
 
-        await asyncio.sleep(chunk_size / 1000000)
+        await asyncio.sleep(chunk_size / 500000)
         while True:
             with open(parity_file, "rb") as f:
                 parity = bytearray(f.read())
@@ -269,7 +269,7 @@ class Storage:
             response.headers["Content-Type"] = "application/json"
             return response
 
-        await asyncio.sleep(chunk_size / 1000000)
+        await asyncio.sleep(chunk_size / 500000)
         while True:
             with open(parity_file, "rb") as f:
                 parity = bytearray(f.read())

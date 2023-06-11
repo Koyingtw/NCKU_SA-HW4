@@ -56,7 +56,7 @@ POST_FILE = {
     name="file:create_file",
 )
 async def create_file(file: UploadFile):
-    if await storage.file_exist(file.filename) and await storage.file_integrity(
+    if await storage.file_exist(file.filename) or await storage.file_integrity(
         file.filename
     ):
         detail = {"detail": "File already exists"}
