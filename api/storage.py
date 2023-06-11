@@ -44,11 +44,13 @@ class Storage:
         data_blocks = [f"/var/raid/block-{i}/{filename}" for i in range(num_disks - 1)]
         if not all(os.path.exists(block) for block in data_blocks):
             print("Not exist")
+            self.delete_file(filename)
             return False
 
         # 3. parity block must exist
         parity_block = f"/var/raid/block-{num_disks - 1}/{filename}"
         if not os.path.exists(parity_block):
+            self.delete_file(filename)
             return False
 
         return True
@@ -213,8 +215,93 @@ class Storage:
 
     async def update_file(self, file: UploadFile) -> schemas.File:
         # TODO: update file's data block and parity block and return it's schema
+        content = await file.read()
+        # TODO: create file with data block and parity block and return it's schema
 
-        return await self.create_file(file)
+        # create file with data block and parity block and return it's schema
+
+        length = len(content)
+
+        if length > settings.MAX_SIZE:
+            detail = {"detail": "File too large"}
+            response = Response(
+                content=json.dumps(detail),
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                headers={"Content-Type": "application/json"},
+            )
+            return response
+
+        n = settings.NUM_DISKS
+
+        chunk_size = length // (n - 1)
+        print(chunk_size)
+
+        parts = []
+        now = 0
+
+        File_exist = False
+
+        for i in range(length % (n - 1)):
+            part = content[now : now + chunk_size + 1]
+            parts.append(part)
+
+            now += chunk_size + 1
+
+        for i in range(length % (n - 1), n - 1):
+            part = content[now : now + chunk_size] + b"\x00"
+            parts.append(part)
+
+            now += chunk_size
+
+        parity_block = bytearray(parts[0])
+
+        # 寫入所有部分檔案
+        tasks = [
+            write_part_file(f"/var/raid/block-{i}/{file.filename}", part)
+            for i, part in enumerate(parts)
+        ]
+        await asyncio.gather(*tasks)
+
+        for part in parts[1:]:
+            parity_block = bytes(_a ^ _b for _a, _b in zip(parity_block, part))
+
+        parity_file = (
+            f"/var/raid/block-{n - 1}/{file.filename}"  # 奇偶校驗檔案的檔名，例如 parity.bin
+        )
+
+        with open(parity_file, "wb") as f:
+            f.write(parity_block)
+            f.close()
+
+        if File_exist:
+            detail = {"detail": "File already exists"}
+            response = Response(
+                content=json.dumps(detail), status_code=status.HTTP_409_CONFLICT
+            )
+            response.headers["Content-Type"] = "application/json"
+            return response
+
+        await asyncio.sleep(2)
+        while True:
+            with open(parity_file, "rb") as f:
+                parity = bytearray(f.read())
+                f.close()
+                if parity == parity_block:
+                    schema = {
+                        "name": file.filename,
+                        "size": length,
+                        "checksum": hashlib.md5(content).hexdigest(),
+                        "content": base64.b64encode(content).decode("utf-8"),
+                        "content_type": file.content_type,
+                    }
+
+                    response = Response(
+                        content=json.dumps(schema),
+                        status_code=status.HTTP_200_OK,
+                        headers={"Content-Type": "application/json"},
+                    )
+
+                    return response
 
     async def delete_file(self, filename: str) -> None:
         # TODO: delete file's data block and parity block
@@ -228,19 +315,24 @@ class Storage:
 
     async def fix_block(self, block_id: int) -> None:
         # TODO: fix the broke block by using rest of block
-        with open(f"/var/raid/block-{block_id}/", "rb") as f:
-            xor_result = bytearray(f.read())
 
-        for i in range(settings.NUM_DISKS - 1):
-            if i == block_id:
-                continue
-            with open(f"/var/raid/block-{i}/", "rb") as f:
-                xor_result = byte_xor(xor_result, bytearray(f.read()))
+        # list all filename in folder
+        folder_names = os.listdir(f"/var/raid/block-{settings.NUM_DISKS - 1}/")
+        folder_names.sort()  # 確保按照順序讀取檔案
 
-        with open(f"/var/raid/block-{block_id}/", "wb") as f:
-            f.write(xor_result)
-            f.close()
-        pass
+        for filename in folder_names:
+            with open(f"/var/raid/block-{settings.NUM_DISKS}/{filename}", "rb") as f:
+                xor_result = bytearray(f.read())
+            for i in range(settings.NUM_DISKS - 1):
+                if i == block_id:
+                    continue
+                with open(f"/var/raid/block-{i}/{filename}", "rb") as f:
+                    xor_result = byte_xor(xor_result, bytearray(f.read()))
+
+            with open(f"/var/raid/block-{block_id}/", "wb") as f:
+                f.write(xor_result)
+                f.close()
+            pass
 
 
 storage: Storage = Storage(is_test="pytest" in sys.modules)
