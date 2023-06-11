@@ -95,26 +95,6 @@ async def retrieve_file(filename: str) -> Response:
             },
         )
 
-    file_data = await storage.retrieve_file(filename)
-
-    if len(file_data) == 0:
-        detail = {"detail": "File not found"}
-        response = Response(
-            content=json.dumps(detail),
-            status_code=status.HTTP_404_NOT_FOUND,
-        )
-        response.headers["Content-Type"] = "application/json"
-        return response
-    else:
-        return Response(
-            file_data,
-            media_type="application/octet-stream",
-            headers={
-                "Content-Disposition": f"attachment; filename={filename}",
-                "Content-Length": str(len(file_data)),
-            },
-        )
-
 
 @router.put("/", status_code=status.HTTP_200_OK, name="file:update_file")
 async def update_file(file: UploadFile) -> schemas.File:
