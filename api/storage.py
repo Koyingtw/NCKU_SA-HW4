@@ -276,7 +276,7 @@ class Storage:
             response.headers["Content-Type"] = "application/json"
             return response
 
-        await asyncio.sleep(2)
+        # await asyncio.sleep(1)
         while True:
             with open(parity_file, "rb") as f:
                 parity = bytearray(f.read())

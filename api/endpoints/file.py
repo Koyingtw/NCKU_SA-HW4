@@ -56,7 +56,9 @@ POST_FILE = {
     name="file:create_file",
 )
 async def create_file(file: UploadFile):
-    if await storage.file_exist(file.filename):
+    if await storage.file_exist(file.filename) and await storage.file_integrity(
+        file.filename
+    ):
         detail = {"detail": "File already exists"}
         response = Response(
             content=json.dumps(detail),
@@ -72,7 +74,9 @@ async def retrieve_file(filename: str) -> Response:
     # TODO: Add headers to ensure the filename is displayed correctly
     #       You should also ensure that enables the judge to download files directly
 
-    if not await storage.file_exist(filename):
+    if not await storage.file_exist(filename) or not await storage.file_integrity(
+        filename
+    ):
         detail = {"detail": "File not found"}
         response = Response(
             content=json.dumps(detail),
