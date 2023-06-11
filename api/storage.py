@@ -39,7 +39,7 @@ class Storage:
             path.mkdir(parents=True, exist_ok=True)
 
     async def file_integrity(self, filename: str) -> bool:
-        return True
+        # return True
         """TODO: check if file integrity is valid
         file integrated must satisfy following conditions:
             1. all data blocks must exist
@@ -55,8 +55,9 @@ class Storage:
 
         # 1. all data blocks must exist
         num_disks = settings.NUM_DISKS
-        data_blocks = [f"/var/raid/block-{i}" for i in range(num_disks - 1)]
+        data_blocks = [f"/var/raid/block-{i}/{filename}" for i in range(num_disks - 1)]
         if not all(os.path.exists(block) for block in data_blocks):
+            print("Not exist")
             return False
 
         # 2. size of all data blocks must be equal
@@ -65,7 +66,7 @@ class Storage:
             return False
 
         # 3. parity block must exist
-        parity_block = f"/var/raid/block-{num_disks - 1}"
+        parity_block = f"/var/raid/block-{num_disks - 1}/{filename}"
         if not os.path.exists(parity_block):
             return False
 
@@ -73,7 +74,7 @@ class Storage:
         xor_result = bytearray()
         for i in range(num_disks - 1):
             if i == 0:
-                with open(data_blocks[i], "rb") as f:
+                with open(f"{data_blocks[i]}", "rb") as f:
                     xor_result = bytearray(f.read())
                     f.close()
             else:
@@ -103,15 +104,14 @@ class Storage:
             )
             return response
 
-        # old_file = await self.retrieve_file(file.filename)
-        # if old_file == content:
-        #     detail = {"detail": "File already exists"}
-        #     response = Response(
-        #         content=json.dumps(detail),
-        #         status_code=status.HTTP_409_CONFLICT,
-        #     )
-        #     response.headers["Content-Type"] = "application/json"
-        #     return response
+        if await self.file_integrity(file.filename):
+            detail = {"detail": "File already exists"}
+            response = Response(
+                content=json.dumps(detail),
+                status_code=status.HTTP_409_CONFLICT,
+            )
+            response.headers["Content-Type"] = "application/json"
+            return response
 
         n = settings.NUM_DISKS
 
@@ -143,10 +143,6 @@ class Storage:
             for i, part in enumerate(parts)
         ]
         await asyncio.gather(*tasks)
-
-        with open(f"/var/raid/block-0/{file.filename}", "rb") as f:
-            temp = f.read()
-            logger.warning(temp)
 
         for part in parts[1:]:
             parity_block = bytes(_a ^ _b for _a, _b in zip(parity_block, part))
@@ -196,13 +192,18 @@ class Storage:
         folder_names = os.listdir("/var/raid/")
         folder_names.sort()  # 確保按照順序讀取檔案
 
-        file_exist = False
+        if await self.file_integrity(filename):
+            detail = {"detail": "File not found"}
+            response = Response(
+                content=json.dumps(detail), status_code=status.HTTP_404_NOT_FOUND
+            )
+            response.headers["Content-Type"] = "application/json"
+            return response
 
         for i in range(len(folder_names) - 1):
             file_path = f"/var/raid/block-{i}/{filename}"
 
             if os.path.exists(file_path):
-                file_exist = True
                 with open(file_path, "rb") as f:
                     file_content = f.read()
                     f.close()
@@ -212,9 +213,6 @@ class Storage:
 
                 # 連接二進位數據
                 file_data += file_content
-
-        if not file_exist:
-            return b""
 
         return file_data
 
