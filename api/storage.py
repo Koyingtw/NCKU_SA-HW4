@@ -42,7 +42,7 @@ class Storage:
         # 1. all data blocks must exist
         num_disks = settings.NUM_DISKS
 
-        for i in range(num_disks - 1):
+        for i in range(num_disks):
             if not os.path.exists(f"/var/raid/block-{i}/{filename}"):
                 print(f"/var/raid/block-{i}/{filename} Not exist")
                 await self.delete_file(filename)
