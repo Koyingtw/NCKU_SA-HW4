@@ -331,7 +331,7 @@ class Storage:
                 with open(f"/var/raid/block-{i}/{filename}", "rb") as f:
                     xor_result = byte_xor(xor_result, bytearray(f.read()))
 
-            with open(f"/var/raid/block-{block_id}/", "wb") as f:
+            with open(f"/var/raid/block-{block_id}/{filename}", "wb") as f:
                 f.write(xor_result)
                 f.close()
             pass
