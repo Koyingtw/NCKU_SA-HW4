@@ -121,8 +121,6 @@ class Storage:
         parts = []
         now = 0
 
-        File_exist = False
-
         for i in range(length % (n - 1)):
             part = content[now : now + chunk_size + 1]
             parts.append(part)
@@ -155,15 +153,7 @@ class Storage:
             f.write(parity_block)
             f.close()
 
-        if File_exist:
-            detail = {"detail": "File already exists"}
-            response = Response(
-                content=json.dumps(detail), status_code=status.HTTP_409_CONFLICT
-            )
-            response.headers["Content-Type"] = "application/json"
-            return response
-
-        await asyncio.sleep(2)
+        await asyncio.sleep(chunk_size / 1000000)
         while True:
             with open(parity_file, "rb") as f:
                 parity = bytearray(f.read())
@@ -279,7 +269,7 @@ class Storage:
             response.headers["Content-Type"] = "application/json"
             return response
 
-        # await asyncio.sleep(1)
+        await asyncio.sleep(chunk_size / 1000000)
         while True:
             with open(parity_file, "rb") as f:
                 parity = bytearray(f.read())

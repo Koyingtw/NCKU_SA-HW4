@@ -98,7 +98,9 @@ async def retrieve_file(filename: str) -> Response:
 
 @router.put("/", status_code=status.HTTP_200_OK, name="file:update_file")
 async def update_file(file: UploadFile) -> schemas.File:
-    if not await storage.file_exist(file.filename):
+    if not await storage.file_exist(file.filename) or not await storage.file_integrity(
+        file.filename
+    ):
         detail = {"detail": "File not found"}
         response = Response(
             content=json.dumps(detail),
