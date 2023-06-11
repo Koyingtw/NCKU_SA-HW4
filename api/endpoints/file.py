@@ -131,7 +131,9 @@ async def update_file(file: UploadFile) -> schemas.File:
 
 @router.delete("/", status_code=status.HTTP_200_OK, name="file:delete_file")
 async def delete_file(filename: str) -> str:
-    if not await storage.file_exist(filename):
+    if not await storage.file_exist(filename) or not await storage.file_integrity(
+        filename
+    ):
         detail = {"detail": "File not found"}
         response = Response(
             content=json.dumps(detail),

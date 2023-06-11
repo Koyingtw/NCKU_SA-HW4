@@ -45,7 +45,6 @@ class Storage:
         for i in range(num_disks - 1):
             if not os.path.exists(f"/var/raid/block-{i}/{filename}"):
                 print(f"/var/raid/block-{i}/{filename} Not exist")
-                await self.delete_file(filename)
                 return False
 
         return True
@@ -69,11 +68,13 @@ class Storage:
         parity_block = f"/var/raid/block-{num_disks - 1}/{filename}"
 
         if not await self.file_exist(filename):
+            await self.delete_file(filename)
             return False
 
         # 2. size of all data blocks must be equal
         first_block_size = os.path.getsize(data_blocks[0])
         if not all(os.path.getsize(block) == first_block_size for block in data_blocks):
+            await self.delete_file(filename)
             return False
 
         # parity verify must success
@@ -89,6 +90,7 @@ class Storage:
                     f.close()
         with open(parity_block, "rb") as f:
             if xor_result != bytearray(f.read()):
+                await self.delete_file(filename)
                 return False
             f.close()
         return True
